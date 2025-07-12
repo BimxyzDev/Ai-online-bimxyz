@@ -58,6 +58,8 @@
       margin-bottom: 10px;
       resize: none;
       min-height: 60px;
+      max-height: 160px;
+      overflow-y: auto;
     }
 
     button {
@@ -104,30 +106,42 @@
       dots.push(dot);
     }
 
-    // Mata berkedip
-    function blinkEyes() {
-      const eyeL = [136, 137, 138, 166, 167, 168];
-      const eyeR = [146, 147, 148, 176, 177, 178];
-      [...eyeL, ...eyeR].forEach(i => dots[i].classList.add('on'));
-      setTimeout(() => {
-        [...eyeL, ...eyeR].forEach(i => dots[i].classList.remove('on'));
-      }, 200);
+    const eyeL = [136, 137, 138, 166, 167, 168];
+    const eyeR = [146, 147, 148, 176, 177, 178];
+    const mouth = [345, 346, 347, 348, 349, 350, 351, 375, 376, 377];
+
+    function drawEyes(state = true, look = 0) {
+      const offset = look; // -1 = kiri, 0 = tengah, 1 = kanan
+      const adjust = pos => pos + offset;
+
+      [...eyeL.map(adjust), ...eyeR.map(adjust)].forEach(i =>
+        dots[i]?.classList.toggle('on', state)
+      );
     }
 
-    setInterval(blinkEyes, 3000);
+    function blinkEyes() {
+      drawEyes(false);
+      setTimeout(() => drawEyes(true), 200);
+    }
 
-    // Mulut bicara
+    setInterval(() => {
+      const dir = [-1, 0, 1][Math.floor(Math.random() * 3)];
+      drawEyes(false);
+      setTimeout(() => drawEyes(true, dir), 200);
+    }, 3000);
+
     function animateTalking(state) {
-      const mouth = [345, 346, 347, 348, 349, 350, 351];
       if (state) {
-        let on = true;
-        window.talk = setInterval(() => {
-          mouth.forEach(i => dots[i].classList.toggle('on', on));
-          on = !on;
-        }, 150);
+        let toggle = true;
+        window.talkInterval = setInterval(() => {
+          mouth.forEach((i, idx) => {
+            dots[i]?.classList.toggle('on', toggle && idx % 2 === 0);
+          });
+          toggle = !toggle;
+        }, 120);
       } else {
-        clearInterval(window.talk);
-        mouth.forEach(i => dots[i].classList.remove('on'));
+        clearInterval(window.talkInterval);
+        mouth.forEach(i => dots[i]?.classList.remove('on'));
       }
     }
 
@@ -153,7 +167,10 @@
 
       animateTalking(false);
     }
+
+    // Awal tampilan
+    drawEyes(true);
   </script>
 
 </body>
-  </html>
+</html>

@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bimxyz AI Robot</title>
+  <style>
+    body {
+      margin: 0;
+      background-color: #000;
+      font-family: 'Courier New', monospace;
+      color: #0f0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      overflow: hidden;
+    }
+
+    #face {
+      display: grid;
+      grid-template-columns: repeat(30, 10px);
+      grid-template-rows: repeat(15, 10px);
+      gap: 2px;
+      margin-bottom: 20px;
+    }
+
+    .dot {
+      width: 10px;
+      height: 10px;
+      background-color: #111;
+      border-radius: 50%;
+      transition: background-color 0.1s;
+    }
+
+    .on {
+      background-color: #0f0;
+      box-shadow: 0 0 5px #0f0;
+    }
+
+    #inputArea {
+      width: 90%;
+      max-width: 500px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    textarea {
+      width: 100%;
+      background: #111;
+      border: 1px solid #0f0;
+      border-radius: 8px;
+      padding: 10px;
+      color: #0f0;
+      font-size: 16px;
+      margin-bottom: 10px;
+      resize: none;
+      min-height: 60px;
+    }
+
+    button {
+      background-color: #0f0;
+      color: #000;
+      border: none;
+      padding: 10px 25px;
+      border-radius: 5px;
+      font-weight: bold;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    #response {
+      margin-top: 20px;
+      text-align: center;
+      white-space: pre-wrap;
+      color: #0f0;
+      max-width: 90%;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="face"></div>
+
+  <div id="inputArea">
+    <textarea id="question" placeholder="Tulis pertanyaanmu di sini..."></textarea>
+    <button onclick="ask()">Tanya</button>
+  </div>
+
+  <div id="response"></div>
+
+  <script>
+    const cols = 30;
+    const rows = 15;
+    const face = document.getElementById('face');
+    const dots = [];
+
+    for (let i = 0; i < cols * rows; i++) {
+      const dot = document.createElement('div');
+      dot.classList.add('dot');
+      face.appendChild(dot);
+      dots.push(dot);
+    }
+
+    // Mata berkedip
+    function blinkEyes() {
+      const eyeL = [136, 137, 138, 166, 167, 168];
+      const eyeR = [146, 147, 148, 176, 177, 178];
+      [...eyeL, ...eyeR].forEach(i => dots[i].classList.add('on'));
+      setTimeout(() => {
+        [...eyeL, ...eyeR].forEach(i => dots[i].classList.remove('on'));
+      }, 200);
+    }
+
+    setInterval(blinkEyes, 3000);
+
+    // Mulut bicara
+    function animateTalking(state) {
+      const mouth = [345, 346, 347, 348, 349, 350, 351];
+      if (state) {
+        let on = true;
+        window.talk = setInterval(() => {
+          mouth.forEach(i => dots[i].classList.toggle('on', on));
+          on = !on;
+        }, 150);
+      } else {
+        clearInterval(window.talk);
+        mouth.forEach(i => dots[i].classList.remove('on'));
+      }
+    }
+
+    async function ask() {
+      const q = document.getElementById("question").value.trim();
+      const r = document.getElementById("response");
+      if (!q) return;
+
+      r.textContent = "Mengetik...";
+      animateTalking(true);
+
+      try {
+        const res = await fetch("https://3ecfeca3-1669-4fcc-87ab-ff2a6df80e27-00-2pkafph31o419.pike.replit.dev/ask", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ question: q })
+        });
+        const data = await res.json();
+        r.textContent = data.answer || "Tidak ada respon.";
+      } catch (e) {
+        r.textContent = "Terjadi kesalahan saat menghubungi server.";
+      }
+
+      animateTalking(false);
+    }
+  </script>
+
+</body>
+  </html>
